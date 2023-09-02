@@ -1,11 +1,11 @@
 use chrono::Datelike;
+use crate::candle::Candle;
 use downloader::download::Download as dld;
 use downloader::downloader::Downloader as dlr;
 use zip_extensions::zip_extract;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use serde::Deserialize;
 
 static BASE_URL: &str = "https://data.binance.vision";
 static DEFAULT_INTERVAL: &str = "5m";
@@ -75,24 +75,8 @@ pub fn download_csv(uppercase_symbol: &str, from: chrono::NaiveDate) -> Option<P
     return Some(output);
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Candle {
-    open_ts: u64,
-    open_price: f64,
-    high_price: f64,
-    low_price: f64,
-    close_price: f64,
-    volume: f64,
-    close_ts: u64,
-    qa_vol: f64,
-    trades_num: u64,
-    tbba_volume: f64,
-    tbqa_volume: f64,
-    ignore: u64,
-}
-
-pub fn process_prices<F>(from: chrono::NaiveDate, to: chrono::NaiveDate, f: F) -> bool where
-   F: Fn(Candle) -> ()  {
+pub fn process_prices<F>(symbol: String, from: chrono::NaiveDate, to: chrono::NaiveDate, mut f: F) -> bool where
+   F: FnMut(Candle) -> ()  {
     let mut year = from.year();
     let mut month = from.month();
 
@@ -102,7 +86,7 @@ pub fn process_prices<F>(from: chrono::NaiveDate, to: chrono::NaiveDate, f: F) -
         }
 
         let csv = download_csv(
-            "BTCUSDT",
+            symbol.as_str(),
             chrono::NaiveDate::from_ymd_opt(year.clone(), month.clone(), 1).unwrap());
         if csv.is_none() {
             return false;
