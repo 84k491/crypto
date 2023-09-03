@@ -10,15 +10,32 @@ pub struct Visualizer {
     candles: LinkedList::<Candle>,
     symbol: String,
     signals: LinkedList::<Signal>,
+
+    additional_series_1: LinkedList::<(u64, f32)>,
+    additional_series_2: LinkedList::<(u64, f32)>,
 }
 
 impl Visualizer {
     pub fn new(symbol: &str, candles: &LinkedList::<Candle>) -> Visualizer {
-        return Visualizer { candles: (*candles).clone(), symbol: symbol.to_owned(), signals: LinkedList::new()};
+        return Visualizer {
+            candles: (*candles).clone(),
+            symbol: symbol.to_owned(),
+            signals: LinkedList::new(),
+            additional_series_1: LinkedList::<(u64, f32)>::new(),
+            additional_series_2: LinkedList::<(u64, f32)>::new(),
+        };
     }
 
-    pub fn set_trades(&mut self, signals: &LinkedList::<Signal>) {
+    pub fn set_signals(&mut self, signals: &LinkedList::<Signal>) {
         self.signals = signals.clone();
+    }
+
+    pub fn set_additional_1(&mut self, series: LinkedList::<(u64, f32)>) {
+        self.additional_series_1 = series;
+    }
+
+    pub fn set_additional_2(&mut self, series: LinkedList::<(u64, f32)>) {
+        self.additional_series_2 = series;
     }
 
     fn chart_bounds(&self) -> ((f32, f32), (f32, f32)) {
@@ -54,7 +71,7 @@ impl Visualizer {
     }
 
     pub fn draw(&self) {
-        let root = BitMapBackend::new(OUT_FILE_NAME, (1920, 1080)).into_drawing_area();
+        let root = BitMapBackend::new(OUT_FILE_NAME, (10920, 1080)).into_drawing_area();
         root.fill(&WHITE).unwrap();
 
         let ((x_min, x_max), (y_min, y_max)) = self.chart_bounds();
@@ -75,10 +92,20 @@ impl Visualizer {
             .label("price")
             .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
 
+        let add_ser1 = self.additional_series_1.iter().map(|(t, v)| {(*t as f32, *v)});
+        chart.draw_series(LineSeries::new(add_ser1, &BLUE,)).unwrap()
+            .label("slow_sma")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+
+        let add_ser2 = self.additional_series_2.iter().map(|(t, v)| {(*t as f32, *v)});
+        chart.draw_series(LineSeries::new(add_ser2, &MAGENTA,)).unwrap()
+            .label("quick_sma")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+
         chart.draw_series(
             self.signals.iter().map(
                 |s| {
-                    Circle::new((s.ts as f32, s.price), 5, Visualizer::side_to_style(&s.side))
+                    Circle::new((s.ts as f32, s.price), 3, Visualizer::side_to_style(&s.side))
                 }))
             .unwrap()
             .label("trades")

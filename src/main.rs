@@ -16,7 +16,9 @@ fn main() {
         |c| { strategy.push_candle(&c); });
 
     let mut vis = visualizer::Visualizer::new(SYMBOL, strategy.get_candles());
-    vis.set_trades(strategy.get_signals());
+    vis.set_signals(strategy.get_signals());
+    vis.set_additional_1(strategy.get_slow_sma_results().clone());
+    vis.set_additional_2(strategy.get_quick_sma_results().clone());
     vis.draw();
 
     println!("Exit");
