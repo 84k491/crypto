@@ -1,5 +1,6 @@
 use std::collections::LinkedList;
 use crate::candle::Candle;
+use crate::signal::{Side, Signal};
 use plotters::backend::BitMapBackend;
 use plotters::prelude::*;
 
@@ -8,11 +9,16 @@ static OUT_FILE_NAME: &str = "plot.bmp";
 pub struct Visualizer {
     candles: LinkedList::<Candle>,
     symbol: String,
+    signals: LinkedList::<Signal>,
 }
 
 impl Visualizer {
     pub fn new(symbol: &str, candles: &LinkedList::<Candle>) -> Visualizer {
-        return Visualizer { candles: (*candles).clone(), symbol: symbol.to_owned()};
+        return Visualizer { candles: (*candles).clone(), symbol: symbol.to_owned(), signals: LinkedList::new()};
+    }
+
+    pub fn set_trades(&mut self, signals: &LinkedList::<Signal>) {
+        self.signals = signals.clone();
     }
 
     fn chart_bounds(&self) -> ((f32, f32), (f32, f32)) {
@@ -40,8 +46,15 @@ impl Visualizer {
         return ((x_min, x_max), (y_min, y_max));
     }
 
+    fn side_to_style(s: &Side) -> plotters::style::ShapeStyle {
+        match s {
+            Side::Buy => { Into::<ShapeStyle>::into(&GREEN).filled() }
+            Side::Sell => { Into::<ShapeStyle>::into(&RED).filled() }
+        }
+    }
+
     pub fn draw(&self) {
-        let root = BitMapBackend::new(OUT_FILE_NAME, (1024, 768)).into_drawing_area();
+        let root = BitMapBackend::new(OUT_FILE_NAME, (1920, 1080)).into_drawing_area();
         root.fill(&WHITE).unwrap();
 
         let ((x_min, x_max), (y_min, y_max)) = self.chart_bounds();
@@ -57,9 +70,19 @@ impl Visualizer {
             self.candles.iter().map(|c| (c.close_ts as f32, c.close_price)).collect();
 
         chart.configure_mesh().draw().unwrap();
-        chart.draw_series(LineSeries::new(prices, &RED,)).unwrap()
+
+        chart.draw_series(LineSeries::new(prices, &BLACK,)).unwrap()
             .label("price")
-            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+
+        chart.draw_series(
+            self.signals.iter().map(
+                |s| {
+                    Circle::new((s.ts as f32, s.price), 5, Visualizer::side_to_style(&s.side))
+                }))
+            .unwrap()
+            .label("trades")
+            .legend(|(x, y)| Circle::new((x + 10, y), 5, Into::<ShapeStyle>::into(&GREEN).filled()));
 
         chart
             .configure_series_labels()
