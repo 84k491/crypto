@@ -1,5 +1,6 @@
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize)]
 pub struct Candle {
     pub open_ts: u64,

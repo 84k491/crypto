@@ -16,13 +16,18 @@ pub struct Strategy {
     quick_sma_res: LinkedList::<(u64, f32)>,
 }
 
+// static DAY: u32 = HOUR * 24;
+static HOUR: u32 = 3600000;
+// static MINUTE: u32 = 60000;
+// static SECOND: u32 = 1000;
+
 impl Strategy {
     pub fn new() -> Strategy {
         return Strategy{
             candles: LinkedList::<Candle>::new(),
             signals: LinkedList::<Signal>::new(),
-            slow_sma: SimpleMovingAverage::new(36000000), // 10 hours
-            quick_sma: SimpleMovingAverage::new(7200000), // 2 hour
+            slow_sma: SimpleMovingAverage::new(3 * HOUR),
+            quick_sma: SimpleMovingAverage::new(1 * HOUR),
             side_iter: Side::Buy,
             slow_above: None,
             slow_sma_res: LinkedList::<(u64, f32)>::new(),

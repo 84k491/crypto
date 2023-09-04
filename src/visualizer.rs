@@ -95,12 +95,12 @@ impl Visualizer {
         let add_ser1 = self.additional_series_1.iter().map(|(t, v)| {(*t as f32, *v)});
         chart.draw_series(LineSeries::new(add_ser1, &BLUE,)).unwrap()
             .label("slow_sma")
-            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
 
         let add_ser2 = self.additional_series_2.iter().map(|(t, v)| {(*t as f32, *v)});
         chart.draw_series(LineSeries::new(add_ser2, &MAGENTA,)).unwrap()
             .label("quick_sma")
-            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &MAGENTA));
 
         chart.draw_series(
             self.signals.iter().map(
