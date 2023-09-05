@@ -2,8 +2,9 @@ use std::collections::LinkedList;
 use crate::candle::Candle;
 use crate::signal::Signal;
 use crate::signal::Side;
+use crate::mock_trading_gateway::MockTradingGateway;
 
-pub struct Strategy {
+pub struct Strategy<'a> {
     candles: LinkedList::<Candle>,
     signals: LinkedList::<Signal>,
 
@@ -14,6 +15,8 @@ pub struct Strategy {
 
     slow_sma_res: LinkedList::<(u64, f32)>,
     quick_sma_res: LinkedList::<(u64, f32)>,
+
+    trading_gateway: &'a mut MockTradingGateway,
 }
 
 // static DAY: u32 = HOUR * 24;
@@ -21,12 +24,13 @@ static HOUR: u32 = 3600000;
 // static MINUTE: u32 = 60000;
 // static SECOND: u32 = 1000;
 
-impl Strategy {
-    pub fn new() -> Strategy {
-        return Strategy{
+impl<'a> Strategy<'a> {
+    pub fn new(trading_gateway: &mut MockTradingGateway) -> Strategy {
+        return Strategy {
+            trading_gateway,
             candles: LinkedList::<Candle>::new(),
             signals: LinkedList::<Signal>::new(),
-            slow_sma: SimpleMovingAverage::new(3 * HOUR),
+            slow_sma: SimpleMovingAverage::new(4 * HOUR),
             quick_sma: SimpleMovingAverage::new(1 * HOUR),
             side_iter: Side::Buy,
             slow_above: None,
@@ -70,6 +74,8 @@ impl Strategy {
                 price: candle.close_price,
                 side: self.flip_side()};
             self.slow_above = Some(slow_avg > quick_avg);
+
+            self.trading_gateway.on_signal(signal.clone());
             self.signals.push_back(signal.clone());
             return Some(signal);
         }

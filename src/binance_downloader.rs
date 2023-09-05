@@ -32,8 +32,6 @@ fn compose_archive_string(uppercase_symbol: &str, from: &chrono::NaiveDate) -> P
 }
 
 pub fn download_csv(uppercase_symbol: &str, from: chrono::NaiveDate) -> Option<PathBuf> {
-    println!("Downloading for {}", from);
-
     let archive_name = compose_archive_string(uppercase_symbol, &from);
     let mut archive_buf = PathBuf::from_str(TARGET_DIR).unwrap();
     archive_buf.push(archive_name.clone());
