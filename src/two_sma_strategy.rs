@@ -4,7 +4,7 @@ use crate::signal::Signal;
 use crate::signal::Side;
 use crate::mock_trading_gateway::MockTradingGateway;
 
-pub struct Strategy<'a> {
+pub struct TwoSmaStrategy<'a> {
     candles: LinkedList::<Candle>,
     signals: LinkedList::<Signal>,
 
@@ -24,9 +24,9 @@ static HOUR: u32 = 3600000;
 // static MINUTE: u32 = 60000;
 // static SECOND: u32 = 1000;
 
-impl<'a> Strategy<'a> {
-    pub fn new(trading_gateway: &mut MockTradingGateway) -> Strategy {
-        return Strategy {
+impl<'a> TwoSmaStrategy<'a> {
+    pub fn new(trading_gateway: &mut MockTradingGateway) -> TwoSmaStrategy {
+        return TwoSmaStrategy {
             trading_gateway,
             candles: LinkedList::<Candle>::new(),
             signals: LinkedList::<Signal>::new(),

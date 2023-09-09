@@ -5,7 +5,7 @@ mod binance_downloader;
 mod visualizer;
 mod candle;
 mod signal;
-mod strategy;
+mod two_sma_strategy;
 mod mock_trading_gateway;
 mod statistics;
 mod position;
@@ -20,7 +20,7 @@ fn main() {
     let mut trgw = MockTradingGateway::new();
 
     {
-        let mut strategy = strategy::Strategy::new(&mut trgw);
+        let mut strategy = two_sma_strategy::TwoSmaStrategy::new(&mut trgw);
 
         binance_downloader::process_prices(
             SYMBOL.to_owned(), from, to,

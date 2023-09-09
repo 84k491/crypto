@@ -56,10 +56,10 @@ impl Statistics {
         println!(" Depo:");
         println!("  Initial depo: {}", self.init_depo);
         println!("  Final depo: {}", final_depo);
-        println!("  Depo delta persent: {}%", depo_procent_delta);
         println!("  Depo delta: {}", self.total_currency_delta);
         println!("  Highest depo: {}", self.highest_depo);
         println!("  Lowest depo: {}", self.lowest_depo);
+        println!("  Depo delta persent: {}%", depo_procent_delta);
         println!("  Highest depo persent: {}%", 100f32 * (self.highest_depo - self.init_depo) / self.init_depo);
         println!("  Lowest depo percent: {}%", 100f32 * (self.lowest_depo - self.init_depo) / self.init_depo);
         println!(" Positions:");
