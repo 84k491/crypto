@@ -7,17 +7,18 @@ mod candle;
 mod signal;
 mod strategy;
 mod mock_trading_gateway;
+mod statistics;
+mod position;
 mod order;
 
 static SYMBOL: &str = "BTCUSDT";
 
 fn main() {
-    let from = chrono::NaiveDate::from_ymd_opt(2023, 3, 1).expect("Bad hardcode");
-    let to = chrono::NaiveDate::from_ymd_opt(2023, 4, 1).expect("Bad hardcode");
+    let from = chrono::NaiveDate::from_ymd_opt(2023, 1, 1).expect("Bad hardcode");
+    let to = chrono::NaiveDate::from_ymd_opt(2023, 7, 1).expect("Bad hardcode");
 
     let mut trgw = MockTradingGateway::new();
 
-    let init_depo = trgw.get_depo();
     {
         let mut strategy = strategy::Strategy::new(&mut trgw);
 
@@ -32,14 +33,7 @@ fn main() {
         vis.draw();
     }
     trgw.close_position();
-    let final_depo = trgw.get_depo();
-
-    let procent_delta = 100.0f32 * (final_depo - init_depo) / init_depo;
-    println!("Depo changed for {}%. Init: {}, final: {}", procent_delta, init_depo, final_depo);
-    println!("Won: {}({}%), lost: {}",
-        trgw.get_won_positions(),
-        (100 * trgw.get_won_positions()) / (trgw.get_won_positions() + trgw.get_lost_positions()),
-        trgw.get_lost_positions());
+    trgw.get_statistics().print();
 
     println!("Done");
 }

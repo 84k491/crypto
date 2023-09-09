@@ -1,11 +1,7 @@
 use crate::signal::{Side, Signal};
 use crate::order::{Order, Trade};
-
-pub struct Position {
-    // side == sign(commodity_qty)
-    commodity_qty: f32,
-    currency_delta: f32,
-}
+use crate::position::Position;
+use crate::statistics::Statistics;
 
 pub struct PortfolioManager {
     currency_depo: f32,
@@ -16,38 +12,29 @@ pub struct PortfolioManager {
 
 pub struct MockTradingGateway {
     pm: PortfolioManager,
-
-    win_positions: u32,
-    lose_positions: u32,
+    stat: Statistics,
 
     last_price: f32,
 }
 
 impl MockTradingGateway {
     pub fn new() -> Self {
+        let init_depo = 1000f32;
         let pm = PortfolioManager{
-            currency_depo: 1000f32,
+            currency_depo: init_depo.clone(),
             absolute_commodity_limit: 0.1f32,
             pos: None,
         };
+
         return MockTradingGateway {
             pm,
-            win_positions: 0,
-            lose_positions: 0,
+            stat: Statistics::new(init_depo),
             last_price: 0f32,
         };
     }
 
-    pub fn get_depo(&self) -> f32 {
-        return self.pm.currency_depo;
-    }
-
-    pub fn get_won_positions(&self) -> u32 {
-        return self.win_positions;
-    }
-
-    pub fn get_lost_positions(&self) -> u32 {
-        return self.lose_positions;
+    pub fn get_statistics(&self) -> &Statistics {
+        return &self.stat;
     }
 
     fn modify_position(&mut self, desired: f32, price: f32) {
@@ -65,18 +52,14 @@ impl MockTradingGateway {
                 commodity_qty: 0f32,
                 currency_delta: 0f32 });
         }
+        let pos: &mut Position = self.pm.pos.as_mut().unwrap();
 
-        self.pm.pos.as_mut().unwrap().commodity_qty += qty_delta;
-        self.pm.pos.as_mut().unwrap().currency_delta += currency_delta;
+        pos.commodity_qty += qty_delta;
+        pos.currency_delta += currency_delta;
         self.pm.currency_depo += currency_delta;
 
-        if self.pm.pos.as_mut().unwrap().commodity_qty == 0f32 {
-            if self.pm.pos.as_ref().unwrap().currency_delta > 0f32 {
-                self.win_positions += 1;
-            }
-            else {
-                self.lose_positions += 1;
-            }
+        if pos.commodity_qty == 0f32 {
+            self.stat.on_position_close(pos);
             self.pm.pos = None;
         }
     }
