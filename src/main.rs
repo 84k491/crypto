@@ -15,7 +15,7 @@ static SYMBOL: &str = "BTCUSDT";
 
 fn main() {
     let from = chrono::NaiveDate::from_ymd_opt(2023, 1, 1).expect("Bad hardcode");
-    let to = chrono::NaiveDate::from_ymd_opt(2023, 7, 1).expect("Bad hardcode");
+    let to = chrono::NaiveDate::from_ymd_opt(2023, 2, 1).expect("Bad hardcode");
 
     let mut trgw = MockTradingGateway::new();
 
