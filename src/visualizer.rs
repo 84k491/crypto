@@ -13,6 +13,8 @@ pub struct Visualizer {
 
     additional_series_1: LinkedList::<(u64, f32)>,
     additional_series_2: LinkedList::<(u64, f32)>,
+
+    depo_series: LinkedList::<(u64, f32)>,
 }
 
 impl Visualizer {
@@ -23,6 +25,7 @@ impl Visualizer {
             signals: LinkedList::new(),
             additional_series_1: LinkedList::<(u64, f32)>::new(),
             additional_series_2: LinkedList::<(u64, f32)>::new(),
+            depo_series: LinkedList::<(u64, f32)>::new(),
         };
     }
 
@@ -36,6 +39,10 @@ impl Visualizer {
 
     pub fn set_additional_2(&mut self, series: LinkedList::<(u64, f32)>) {
         self.additional_series_2 = series;
+    }
+
+    pub fn set_depo_series(&mut self, series: LinkedList::<(u64, f32)>) {
+        self.depo_series = series;
     }
 
     fn chart_bounds(&self) -> ((f32, f32), (f32, f32)) {
@@ -63,6 +70,21 @@ impl Visualizer {
         return ((x_min, x_max), (y_min, y_max));
     }
 
+    fn depo_bounds(&self) -> (f32, f32) {
+        let first_value = self.depo_series.front().expect("Depo series is empty");
+        let mut min = first_value.1;
+        let mut max = first_value.1;
+        self.depo_series.iter().for_each(|(t, v)| {
+            if min > *v {
+                min = *v;
+            }
+            if max < *v {
+                max = *v;
+            }
+        });
+        return (min, max);
+    }
+
     fn side_to_style(s: &Side) -> plotters::style::ShapeStyle {
         match s {
             Side::Buy => { Into::<ShapeStyle>::into(&GREEN).filled() }
@@ -75,18 +97,26 @@ impl Visualizer {
         root.fill(&WHITE).unwrap();
 
         let ((x_min, x_max), (y_min, y_max)) = self.chart_bounds();
+        let (depo_min, depo_max) = self.depo_bounds();
 
         let mut chart = ChartBuilder::on(&root)
                 .caption(&self.symbol, ("sans-serif", 50).into_font())
                 .margin(20)
                 .x_label_area_size(30)
                 .y_label_area_size(30)
-                .build_cartesian_2d(x_min..x_max, y_min..y_max).unwrap();
+                .right_y_label_area_size(40)
+                .build_cartesian_2d(x_min..x_max, y_min..y_max).unwrap()
+                .set_secondary_coord(x_min..x_max, depo_min..depo_max);
 
         let prices: LinkedList<(f32, f32)> =
             self.candles.iter().map(|c| (c.close_ts as f32, c.close_price)).collect();
 
         chart.configure_mesh().draw().unwrap();
+
+        chart
+            .configure_secondary_axes()
+            .y_desc("Linear Scale")
+            .draw().unwrap();
 
         chart.draw_series(LineSeries::new(prices, &BLACK,)).unwrap()
             .label("price")
@@ -110,6 +140,11 @@ impl Visualizer {
             .unwrap()
             .label("trades")
             .legend(|(x, y)| Circle::new((x + 10, y), 5, Into::<ShapeStyle>::into(&GREEN).filled()));
+
+        let depo_ser = self.depo_series.iter().map(|(t, p)| {(*t as f32, *p)});
+        chart.draw_secondary_series(
+            LineSeries::new(depo_ser, &CYAN))
+            .unwrap();
 
         chart
             .configure_series_labels()

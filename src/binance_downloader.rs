@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 static BASE_URL: &str = "https://data.binance.vision";
-static DEFAULT_INTERVAL: &str = "5m";
+static DEFAULT_INTERVAL: &str = "1m";
 
 static TARGET_DIR: &str = "./downloads";
 

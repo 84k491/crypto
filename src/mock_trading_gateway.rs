@@ -15,6 +15,7 @@ pub struct MockTradingGateway {
     stat: Statistics,
 
     last_price: f32,
+    last_ts: u64,
 }
 
 impl MockTradingGateway {
@@ -30,6 +31,7 @@ impl MockTradingGateway {
             pm,
             stat: Statistics::new(init_depo),
             last_price: 0f32,
+            last_ts: 0,
         };
     }
 
@@ -37,7 +39,7 @@ impl MockTradingGateway {
         return &self.stat;
     }
 
-    fn modify_position(&mut self, desired: f32, price: f32) {
+    fn modify_position(&mut self, ts: u64, desired: f32, price: f32) {
         let qty = match &self.pm.pos {
             Some(pos) => pos.commodity_qty.clone(),
             None => 0f32,
@@ -59,7 +61,7 @@ impl MockTradingGateway {
         self.pm.currency_depo += currency_delta;
 
         if pos.commodity_qty == 0f32 {
-            self.stat.on_position_close(pos);
+            self.stat.on_position_close(ts, pos);
             self.pm.pos = None;
         }
     }
@@ -71,14 +73,15 @@ impl MockTradingGateway {
         };
         let desired_qty = self.pm.absolute_commodity_limit * sign;
         if self.pm.pos.is_some() {
-            self.modify_position(0f32, s.price);
+            self.modify_position(s.ts,0f32, s.price);
         }
-        self.modify_position(desired_qty, s.price);
+        self.modify_position(s.ts, desired_qty, s.price);
         self.last_price = s.price;
+        self.last_ts = s.ts;
     }
 
     pub fn close_position(&mut self) {
-        self.modify_position(0f32, self.last_price);
+        self.modify_position(self.last_ts, 0f32, self.last_price);
     }
 
     fn send_order(order: Order) -> Option<Trade> {

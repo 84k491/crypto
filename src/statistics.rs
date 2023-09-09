@@ -1,4 +1,5 @@
 use crate::position::Position;
+use std::collections::LinkedList;
 
 pub struct Statistics {
     init_depo: f32,
@@ -9,6 +10,8 @@ pub struct Statistics {
     worst_loss: f32,
     highest_depo: f32,
     lowest_depo: f32,
+
+    depo_series: LinkedList::<(u64, f32)>,
 }
 
 impl Statistics {
@@ -22,10 +25,11 @@ impl Statistics {
             worst_loss: 0f32,
             highest_depo: initial_depo,
             lowest_depo: initial_depo,
+            depo_series: LinkedList::<(u64, f32)>::new(),
         }
     }
 
-    pub fn on_position_close(&mut self, pos: &Position) {
+    pub fn on_position_close(&mut self, ts: u64, pos: &Position) {
         if pos.currency_delta > 0f32 {
             self.profit_positions += 1;
             if self.best_profit < pos.currency_delta {
@@ -40,6 +44,7 @@ impl Statistics {
         }
 
         self.total_currency_delta += pos.currency_delta;
+        self.depo_series.push_back((ts, self.total_currency_delta + self.init_depo));
 
         if self.total_currency_delta + self.init_depo > self.highest_depo {
             self.highest_depo = self.total_currency_delta + self.init_depo;
@@ -47,6 +52,10 @@ impl Statistics {
         if self.total_currency_delta + self.init_depo < self.lowest_depo {
             self.lowest_depo = self.total_currency_delta + self.init_depo;
         }
+    }
+
+    pub fn get_depo_series(&self) -> &LinkedList::<(u64, f32)> {
+        return &self.depo_series;
     }
 
     pub fn print(&self) {

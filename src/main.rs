@@ -30,6 +30,7 @@ fn main() {
         vis.set_signals(strategy.get_signals());
         vis.set_additional_1(strategy.get_slow_sma_results().clone());
         vis.set_additional_2(strategy.get_quick_sma_results().clone());
+        vis.set_depo_series(trgw.get_statistics().get_depo_series().clone());
         vis.draw();
     }
     trgw.close_position();
